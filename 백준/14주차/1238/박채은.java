@@ -62,6 +62,7 @@ public class Main {
         }
 
         // x로 가는 경우 : n -> x
+        // result2가 result1과 같은 값으로 출력됨 - [4,0,6,3]이 되어야함
         int[] result2 = dijkstra();
 
         for(int i=1;i<=n;i++){
