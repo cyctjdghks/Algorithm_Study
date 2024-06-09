@@ -1,6 +1,4 @@
-﻿import org.checkerframework.checker.units.qual.A;
-
-import java.io.BufferedReader;
+﻿import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -56,18 +54,11 @@ public class Main {
 
         // 다익스트라를 사용해서 최단 거리 구하기
         // x에서 집에 돌아가는 경우 : x -> n
-        int[] result1 = dijkstra();
-        for(int i=1;i<=n;i++){
-            System.out.println(i + " : "+result1[i]);
-        }
+        int[] result1 = dijkstra(line);
 
         // x로 가는 경우 : n -> x
-        // result2가 result1과 같은 값으로 출력됨 - [4,0,6,3]이 되어야함
-        int[] result2 = dijkstra();
+        int[] result2 = dijkstra(rev_line);
 
-        for(int i=1;i<=n;i++){
-            System.out.println(i + " : "+result2[i]);
-        }
 
         int maxValue = -1;
         for(int i=1;i<=n;i++){
@@ -78,7 +69,7 @@ public class Main {
 
         System.out.println(maxValue);
     }
-    public static int[] dijkstra(){
+    public static int[] dijkstra(ArrayList<ArrayList<Line>> l){
         int[] dst = new int[n+1];
         Arrays.fill(dst, Integer.MAX_VALUE);
 
@@ -96,7 +87,7 @@ public class Main {
                 check[cur] = true;
 
                 // 연결된 다리 탐색
-                for(Line line : line.get(cur)){
+                for(Line line : l.get(cur)){
                     if(!check[line.end] && dst[line.end] > dst[cur] + line.value){
                         dst[line.end] = dst[cur] + line.value;
                         queue.add(new Line(line.end, dst[line.end]));
