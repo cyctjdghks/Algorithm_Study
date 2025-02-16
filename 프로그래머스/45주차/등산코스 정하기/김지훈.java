@@ -1,84 +1,85 @@
 import java.util.*;
 
 class Solution {
-    private int N, resultNode = Integer.MAX_VALUE, minIntensity = Integer.MAX_VALUE, curSummit;
-    private List<Integer>[] node;
-    private int[][] cost;
-    private Set<Integer> gateSet = new HashSet<>();
-    private Set<Integer> summitSet = new HashSet<>();
-    private boolean flag;
+
+    private List<Node>[] graphs = new ArrayList[50010];
+
+
+    private int[] visited = new int[50010];
+    private boolean[] isSummits = new boolean[50010];
+    private PriorityQueue<Curr> pq = new PriorityQueue<Curr>();
 
     public int[] solution(int n, int[][] paths, int[] gates, int[] summits) {
-        N = n;
-        node = new List[n+1];
-        cost = new int[n+1][n+1];
-
-        for (int i = 1; i <= n; i++) {
-            node[i] = new ArrayList<>();
+        for (int i = 0; i < graphs.length; i++) {
+            graphs[i] = new ArrayList<Node>();
+        }
+        for (int i=0; i<=n; i++) {
+            visited[i] = 1000000000;
+        }
+        for (int i=0; i<summits.length; i++) {
+            isSummits[summits[i]] = true;
+        }
+        for (int[] path: paths) {
+            int x = path[0];
+            int y = path[1];
+            int z = path[2];
+            graphs[x].add(new Node(y, z));
+            graphs[y].add(new Node(x, z));
+        }
+        for(int gate: gates) {
+            visited[gate] = 0;
+            pq.add(new Curr(gate, 0));
         }
 
-        for (int gate : gates) {
-            gateSet.add(gate);
-        }
-
-        for (int summit : summits) {
-            summitSet.add(summit);
-        }
-
-        for (int[] path : paths) {
-            node[path[0]].add(path[1]);
-            node[path[1]].add(path[0]);
-            cost[path[0]][path[1]] = path[2];
-            cost[path[1]][path[0]] = path[2];
-        }
-
-        for (int gate : gates) {
-            boolean[] visited = new boolean[n+1];
-            visited[gate] = true;
-            upDfs(gate, gate, 0, visited);
-        }
-        return new int[]{resultNode, minIntensity};
-    }
-
-    private void upDfs(int x, int start, int intensity, boolean[] visited) {
-        if(summitSet.contains(x)) {
-            boolean[] newVisited = new boolean[N+1];
-            newVisited[x] = true;
-            curSummit = x;
-            flag = false;
-            downDfs(x, start, intensity, newVisited);
-            return;
-        }
-
-        for (int i = 0; i < node[x].size(); i++) {
-            int next = node[x].get(i);
-            if(gateSet.contains(next) || visited[next]) continue;
-            visited[next] = true;
-            upDfs(next, start, Math.max(intensity, cost[x][next]), visited);
-            visited[next] = false;
-        }
-    }
-
-    private void downDfs(int x, int start, int intensity, boolean[] visited) {
-        if(flag) return;
-
-        if(gateSet.contains(x)) {
-            if(minIntensity > intensity) {
-                minIntensity = intensity;
-                resultNode = curSummit;
-                flag = true;
-            } else if(minIntensity == intensity && resultNode > curSummit) {
-                resultNode = curSummit;
-                flag = true;
+        while (pq.size() != 0) {
+            Curr curr = pq.poll();
+            if (visited[curr.node] < curr.dist) continue;
+            for (Node next: graphs[curr.node]) {
+                if (visited[next.x] <= Math.max(curr.dist, next.y)) continue;
+                visited[next.x] = Math.max(curr.dist, next.y);
+                if (isSummits[next.x]) continue;
+                pq.add(new Curr(next.x, visited[next.x]));
             }
         }
 
-        for (int i = 0; i < node[x].size(); i++) {
-            int next = node[x].get(i);
-            if(summitSet.contains(next) || (gateSet.contains(next) && next != start) || visited[next]) continue;
-            visited[next] = true;
-            downDfs(next, start, Math.max(intensity, cost[x][next]), visited);
-            visited[next] = false;
+        int mini = 1000000000;
+        int node = 0;
+        for (int summit: summits) {
+            if (visited[summit] < mini) {
+                mini = visited[summit];
+                node = summit;
+            } else if (visited[summit] == mini && summit < node) {
+                mini = visited[summit];
+                node = summit;
+            }
         }
+        int[] answer = {node, mini};
+        return answer;
+    }
+
+    static class Node {
+        int x;
+        int y;
+
+        public Node(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+    }
+
+    static class Curr implements Comparable<Curr> {
+        int node;
+        int dist;
+
+        public Curr(int node, int dist) {
+            this.node = node;
+            this.dist = dist;
+        }
+
+        @Override
+        public int compareTo(Curr a) {
+            return this.dist - a.dist;
+        }
+
     }
 }
